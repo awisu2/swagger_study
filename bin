@@ -1,0 +1,51 @@
+#!/bin/bash
+
+CODE_SUCCESS=0
+CODE_ERROR=1
+CODE_ERROR_BULT_IN=2
+
+check_commands() {
+  dc="${1}"
+
+  if [[ -x "${dc}" ]]; then
+    :
+  else
+    echo "Please install Docker before run this command."
+    exit ${CODE_ERROR_BULT_IN}
+  fi
+}
+
+dc=$(which docker) # docker-compose command with full path
+check_commands "${dc}"
+
+run() {
+  echo "run ${1}"
+  $dc run -p 8080:8080 ${1}
+}
+
+run_rm() {
+  echo "run with rm ${1}"
+  $dc run --rm -p 8080:8080 ${1}
+}
+
+cmd=$1
+shift
+case "$cmd" in
+    ui)
+      run_rm "swaggerapi/swagger-ui" && exit ${CODE_SUCCESS}
+      ;;
+    editor)
+      run_rm "swaggerapi/swagger-editor" && exit ${CODE_SUCCESS}
+      ;;
+    *)
+      read -d '' help <<-EOF
+Usage: $0 command
+
+Service:
+  ui       run swagger-ui
+  editor   run swagger-editor
+EOF
+        echo "$help"
+        exit 2
+        ;;
+esac
